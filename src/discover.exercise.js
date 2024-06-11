@@ -7,16 +7,16 @@ import {FaSearch} from 'react-icons/fa'
 import {Input, BookListUL, Spinner} from './components/lib'
 import {BookRow} from './components/book-row'
 import React from 'react'
-// 🐨 import the client from './utils/api-client'
 import { client } from 'utils/api-client.exercise'
 // import * as colors from './styles/colors'
+import {useAsync} from 'utils/hooks'
+
+
 
 function DiscoverBooksScreen() {
-  const [status, setStatus] = React.useState('idle')
-  const [data, setData] = React.useState(null)
   const [query, setQuery] = React.useState('')
   const [queried, setQueried] = React.useState(false)
-  const [error, setError] = React.useState(null)
+  const {data, error, run, isLoading, isError, isSuccess} = useAsync()
 
 
   React.useEffect(() => {
@@ -24,26 +24,12 @@ function DiscoverBooksScreen() {
       return
     }
 
-    console.log('effect')
-    setStatus('loading')
-
-    client(`books?query=${encodeURIComponent(query)}`)
-      .then(data => {
-        setData(data)
-        setStatus('success')
-        console.log(data)
-        }, errorData => {
-          setError(errorData)
-          setStatus('error')
-        })
+    run(client(`books?query=${encodeURIComponent(query)}`))
 
 
-  },[query, queried])
+  },[query, queried, run])
 
 
-  const isLoading = status === 'loading'
-  const isSuccess = status === 'success'
-  const isError = status === 'error'
 
   function handleError() {
     return (
