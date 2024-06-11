@@ -8,12 +8,15 @@ import {Input, BookListUL, Spinner} from './components/lib'
 import {BookRow} from './components/book-row'
 import React from 'react'
 // 🐨 import the client from './utils/api-client'
+import { client } from 'utils/api-client.exercise'
+// import * as colors from './styles/colors'
 
 function DiscoverBooksScreen() {
-  const [status, setStatus] = React.useState(null)
+  const [status, setStatus] = React.useState('idle')
   const [data, setData] = React.useState(null)
   const [query, setQuery] = React.useState('')
   const [queried, setQueried] = React.useState(false)
+  const [error, setError] = React.useState(null)
 
 
   React.useEffect(() => {
@@ -24,26 +27,32 @@ function DiscoverBooksScreen() {
     console.log('effect')
     setStatus('loading')
 
-    window.fetch(`${process.env.REACT_APP_API_URL}/books?query=${encodeURIComponent(query)}`)
-    .then(response => {
-      console.log(response.json)
-      return response.json()
-      })
+    client(`books?query=${encodeURIComponent(query)}`)
       .then(data => {
         setData(data)
         setStatus('success')
         console.log(data)
+        }, errorData => {
+          setError(errorData)
+          setStatus('error')
         })
 
-        // return () => {
-          //   second
-          // }
 
   },[query, queried])
 
 
   const isLoading = status === 'loading'
   const isSuccess = status === 'success'
+  const isError = status === 'error'
+
+  function handleError() {
+    return (
+      <div >
+        <p>There was an error:</p>
+        <p>{error.message}</p>
+      </div>
+    )
+  }
 
   function handleSearchSubmit(event) {
     event.preventDefault()
@@ -79,6 +88,8 @@ function DiscoverBooksScreen() {
         </Tooltip>
       </form>
 
+      {isError ? handleError() : null}
+
       {isSuccess ? (
         data?.books?.length ? (
           <BookListUL css={{marginTop: 20}}>
@@ -92,6 +103,7 @@ function DiscoverBooksScreen() {
           <p>No books found. Try another search.</p>
         )
       ) : null}
+
     </div>
   )
 }
