@@ -7,13 +7,16 @@ import {FaSearch} from 'react-icons/fa'
 import {Input, BookListUL, Spinner} from './components/lib'
 import {BookRow} from './components/book-row'
 import React from 'react'
-// 🐨 import the client from './utils/api-client'
+import { client } from 'utils/api-client.exercise'
+// import * as colors from './styles/colors'
+import {useAsync} from 'utils/hooks'
+
+
 
 function DiscoverBooksScreen() {
-  const [status, setStatus] = React.useState(null)
-  const [data, setData] = React.useState(null)
   const [query, setQuery] = React.useState('')
   const [queried, setQueried] = React.useState(false)
+  const {data, error, run, isLoading, isError, isSuccess} = useAsync()
 
 
   React.useEffect(() => {
@@ -21,29 +24,21 @@ function DiscoverBooksScreen() {
       return
     }
 
-    console.log('effect')
-    setStatus('loading')
-
-    window.fetch(`${process.env.REACT_APP_API_URL}/books?query=${encodeURIComponent(query)}`)
-    .then(response => {
-      console.log(response.json)
-      return response.json()
-      })
-      .then(data => {
-        setData(data)
-        setStatus('success')
-        console.log(data)
-        })
-
-        // return () => {
-          //   second
-          // }
-
-  },[query, queried])
+    run(client(`books?query=${encodeURIComponent(query)}`))
 
 
-  const isLoading = status === 'loading'
-  const isSuccess = status === 'success'
+  },[query, queried, run])
+
+
+
+  function handleError() {
+    return (
+      <div >
+        <p>There was an error:</p>
+        <p>{error.message}</p>
+      </div>
+    )
+  }
 
   function handleSearchSubmit(event) {
     event.preventDefault()
@@ -79,6 +74,8 @@ function DiscoverBooksScreen() {
         </Tooltip>
       </form>
 
+      {isError ? handleError() : null}
+
       {isSuccess ? (
         data?.books?.length ? (
           <BookListUL css={{marginTop: 20}}>
@@ -92,6 +89,7 @@ function DiscoverBooksScreen() {
           <p>No books found. Try another search.</p>
         )
       ) : null}
+
     </div>
   )
 }
